@@ -2,21 +2,25 @@ package main
 
 import (
 	"searcher/internal/fetcher"
+	"searcher/internal/processor"
 	"fmt"
 	"time"
 )
 
 func main() {
+	priceChannel := make(chan float64)
+	done := make(chan bool)
 	start := time.Now()
-	price1 := fetcher.FetchPriceFromSite1()
-	price2 := fetcher.FetchPriceFromSite2()
-	price3 := fetcher.FetchPriceFromSite3()
 
-	fmt.Printf("----------\n")
-	fmt.Printf("$%.2f for site1\n", price1)
-	fmt.Printf("$%.2f for site2\n", price2)
-	fmt.Printf("$%.2f for site3\n", price3)
 
+	go fetcher.FetchPrices(priceChannel)
+
+	go func(){
+		processor.ShowPriceAVG(priceChannel, done)
+	}()
+
+	<- done
+	
 	fmt.Printf("%s total time for search\n", time.Since(start))
 	fmt.Printf("----------\n")
 }
